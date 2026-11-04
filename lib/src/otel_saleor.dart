@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_saleor_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_saleor';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class SaleorResult {
+  /// Creates a result.
   const SaleorResult({
     this.itemCount,
     this.totalCount,
@@ -64,8 +65,13 @@ class SaleorResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class SaleorCallResult<T> {
+  /// Creates a call result.
   const SaleorCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final SaleorResult? result;
 }
@@ -94,38 +100,38 @@ Future<T> tracedSaleor<T>({
   final span = _tracer().startSpan(
     'saleor $operationName',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.itemCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'saleor.item_count',
           r.result!.itemCount!,
         ));
       }
       if (r.result!.totalCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'saleor.total_count',
           r.result!.totalCount!,
         ));
       }
       if (r.result!.channelSlug != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'saleor.channel.slug',
           r.result!.channelSlug!,
         ));
       }
       if (r.result!.warehouseId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'saleor.warehouse.id',
           r.result!.warehouseId!,
         ));
       }
       if (r.result!.orderStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'saleor.order.status',
           r.result!.orderStatus!,
         ));
@@ -138,31 +144,31 @@ Future<T> tracedSaleor<T>({
         }
       }
       if (r.result!.paymentChargeStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'saleor.payment.charge_status',
           r.result!.paymentChargeStatus!,
         ));
       }
       if (r.result!.checkoutStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'saleor.checkout.status',
           r.result!.checkoutStatus!,
         ));
       }
       if (r.result!.totalAmountMinor != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'saleor.amount.total.minor',
           r.result!.totalAmountMinor!,
         ));
       }
       if (r.result!.currency != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'saleor.currency',
           r.result!.currency!,
         ));
       }
       if (r.result!.errorCode != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'saleor.error.code',
           r.result!.errorCode!,
         ));
@@ -172,13 +178,13 @@ Future<T> tracedSaleor<T>({
         );
       }
       if (r.result!.requestId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'saleor.request.id',
           r.result!.requestId!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -189,13 +195,13 @@ Future<T> tracedSaleor<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
